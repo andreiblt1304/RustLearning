@@ -30,12 +30,6 @@ impl Inventory {
             ShirtColor:: Blue
         }
     }
-
-    fn print_result(&self, user_preference: Option<ShirtColor>) -> () {
-        if user_preference.is_some() {
-            println!()
-        }
-    }
 }
 
 fn main() {
