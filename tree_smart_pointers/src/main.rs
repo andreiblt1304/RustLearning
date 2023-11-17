@@ -19,6 +19,11 @@ fn main() {
     });
 
     println!("leaf parent = {:?}", leaf.parent.borrow().upgrade());
+    println!(
+        "leaf strong = {}, weak = {}",
+        Rc::strong_count(&leaf),
+        Rc::weak_count(&leaf),
+    );
 
     let branch = Rc::new(Node {
         value: 5,
@@ -29,5 +34,25 @@ fn main() {
 
     *leaf.parent.borrow_mut() = Rc::downgrade(&branch);
 
-    println!("leaf parent = {:?}", leaf.parent.borrow().upgrade().unwrap());
+    println!(
+        "branch strong = {}, weak = {}",
+        Rc::strong_count(&branch),
+        Rc::weak_count(&branch),
+    );
+
+    println!(
+        "leaf strong = {}, weak = {}",
+        Rc::strong_count(&leaf),
+        Rc::weak_count(&leaf),
+    );
+
+    *leaf.parent.borrow_mut() = Rc::downgrade(&branch);
+
+    println!("leaf parent = {:#?}", leaf.parent.borrow().upgrade().unwrap());
+
+    println!(
+        "leaf strong = {}, weak = {}",
+        Rc::strong_count(&leaf),
+        Rc::weak_count(&leaf),
+    );
 }
