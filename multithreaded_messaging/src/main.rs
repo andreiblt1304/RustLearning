@@ -1,47 +1,62 @@
-use std::sync::mpsc;
+use std::sync::{mpsc, Mutex};
+use std::sync::mpsc::{Sender, Receiver};
 use std::thread;
 use std::time::Duration;
 
+pub fn spawn_and_print_thread(tx: Sender<String>, values: Vec<String>) {
+    for val in values {
+        tx.send(val).unwrap_or_else(|_| {
+            println!("Error at sending the first values!")
+        });
+    }
+}
+
+pub fn share_mutex_between_threads() {
+    let counter = Mutex::new(0);
+    let mut handles = vec![];
+
+    for _ in 0..10 {
+        let handle = thread::spawn(move || {
+            let mut num = counter.lock().unwrap();
+
+            *num += 1;
+        });
+
+        handles.push(handle);
+    }
+
+    for handle in handles {
+        handle.join().unwrap();
+    }
+
+    println!("Result: {}", *counter.lock().unwrap());
+}
+
 fn main() {
     let (tx, rx) = mpsc::channel();
-    let tx1 = tx.clone();
-    
-    thread::spawn(move || {
-        let first_values = vec![
-            String::from("hi"),
-            String::from("from"),
-            String::from("the"),
-            String::from("first"),
-            String::from("thread"),
-        ];
+    let tx1: mpsc::Sender<String> = tx.clone();
+    let first_values = vec![
+        String::from("hi"),
+        String::from("from"),
+        String::from("the"),
+        String::from("first"),
+        String::from("thread"),
+    ];
+    let second_values = vec![
+        String::from("HELLO"),
+        String::from("FROM"),
+        String::from("THE"),
+        String::from("SECOND"),
+        String::from("THREAD"),
+    ];
 
-        for val in first_values {
-            tx1.send(val).unwrap_or_else(|_| {
-                println!("Error at sending the first values!")
-            });
-            thread::sleep(Duration::from_secs(1));
-        }
-    });
+    share_mutex_between_threads();
+    // spawn_and_print_thread(tx, first_values);
+    // thread::sleep(Duration::from_secs_f32(0.5));   
+    // spawn_and_print_thread(tx1, second_values);
 
-    thread::spawn(move || {
-        let second_values = vec![
-            String::from("HELLO"),
-            String::from("FROM"),
-            String::from("THE"),
-            String::from("SECOND"),
-            String::from("THREAD"),
-        ];
-
-        for val in second_values {
-            tx.send(val).unwrap_or_else(|_| {
-                println!("Error at sending the second values!")
-            });
-            thread::sleep(Duration::from_secs(1));
-        }
-    });
-
-    for received in rx {
-        println!("{}", received);
-    }    
+    // for received in rx {
+    //     println!("{}", received);
+    // }    
 }
 
