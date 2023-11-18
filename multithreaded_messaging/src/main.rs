@@ -1,8 +1,6 @@
-use std::rc::Rc;
-use std::sync::{mpsc, Mutex};
-use std::sync::mpsc::{Sender, Receiver};
+use std::sync::{mpsc, Mutex, Arc};
+use std::sync::mpsc::Sender;
 use std::thread;
-use std::time::Duration;
 
 pub fn spawn_and_print_thread(tx: Sender<String>, values: Vec<String>) {
     for val in values {
@@ -13,12 +11,13 @@ pub fn spawn_and_print_thread(tx: Sender<String>, values: Vec<String>) {
 }
 
 pub fn share_mutex_between_threads() {
-    let counter = Rc::new(Mutex::new(0));
+    let counter = Arc::new(Mutex::new(0));
     let mut handles = vec![];
 
     for _ in 0..10 {
+        let counter = Arc::clone(&counter);
+
         let handle = thread::spawn(move || {
-            let counter = Rc::clone(&counter);
             let mut num = counter.lock().unwrap();
 
             *num += 1;
